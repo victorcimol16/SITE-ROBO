@@ -23,7 +23,6 @@ botao.addEventListener("click", function () {
   status.textContent = "Chamando o robô...";
   status.className = "status chamando";
   robo.classList.add("pulsando");
-  robo.classList.remove("chegou");
 
   let passo = 1;
 
@@ -45,12 +44,10 @@ function chegou() {
   status.textContent = "O robô chegou!";
   status.className = "status chegou";
   robo.classList.remove("pulsando");
-  robo.classList.add("chegou"); // rótulo sobe para não cobrir o "Você"
 
   // Depois de alguns segundos, o robô volta para o início e libera o botão.
   setTimeout(function () {
-    robo.classList.remove("chegou");
-    robo.style.left = posicaoInicial.left;
+      robo.style.left = posicaoInicial.left;
     robo.style.top = posicaoInicial.top;
     status.textContent = "Robô disponível";
     status.className = "status";

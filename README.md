@@ -25,6 +25,19 @@ A página simula a chamada do robô sobre o mapa da escola, apresenta o projeto 
 | 4 | **Estabilidade do console** | ✅ | Leitura e gravação no `localStorage` protegidas com `try/catch`; nenhum erro em vermelho ao usar todos os recursos (chamada, envio vazio, cadastro, edição, remoção, limpar tudo e F5). |
 | 5 | **Adaptabilidade, responsividade e acessibilidade** | ✅ | Layout em duas colunas que empilha abaixo de 820 px, sem rolagem horizontal em 320, 390 e 1280 px. HTML semântico (`header`, `main`, `section`, `footer`, `button`, `label`), mapa com `role="img"` e descrição em `aria-label`, mensagens de estado anunciadas por leitor de tela (`role="status"`, `aria-live`), botões de editar/remover com nome acessível, link "Pular para o conteúdo", foco visível, contraste revisado e respeito a `prefers-reduced-motion`. |
 
+
+## Teste com usuários e melhorias aplicadas
+
+Cinco usuários reais testaram a aplicação. A Matriz de Feedback resume o que cada um apontou e a melhoria feita no código:
+
+| Participante | Feedback | Melhoria aplicada |
+|---|---|---|
+| P1 | Aumentar os botões | Botões maiores: "Chamar robô" com 64 px de altura, "Enviar" com 56 px e botões de editar, remover e limpar com no mínimo 44 px (área de toque recomendada) |
+| P2 | Organizar melhor os textos | "Sobre o projeto" dividido em frase de resumo e três blocos com subtítulo (O problema, O que a pesquisa mostrou, Onde o projeto está), com listas no lugar de um parágrafo longo e letra maior |
+| P3 | Trocar a fonte | Fonte Atkinson Hyperlegible (Google Fonts), criada para facilitar a leitura, aplicada a todo o site, inclusive botões e campos |
+| P4 | Remover o degradê | Fundo e botões com cores sólidas |
+| P5 | Bug: texto "voando" na tela | Os rótulos "Você" e "Robô" se moviam junto com os marcadores no mapa; foram removidos e substituídos por uma legenda fixa abaixo do mapa |
+
 ## Como testar (roteiro do pitch)
 
 1. Abra o link da aplicação e pressione **F12 > Console**.
@@ -48,9 +61,11 @@ Testes automatizados no Google Chrome (headless) em 1280 px, 390 px e 320 px de 
 | Rolagem horizontal | Nenhuma |
 | Acessibilidade (axe-core 4) | Nenhuma violação encontrada |
 
+Os mesmos testes foram repetidos após as melhorias dos usuários, com o mesmo resultado.
+
 ## Tecnologias
 
-HTML, CSS e JavaScript puro, sem frameworks e sem servidor. Dados salvos com a Web Storage API (`localStorage`). Hospedagem no GitHub Pages.
+HTML, CSS e JavaScript puro, sem frameworks e sem servidor. Fonte Atkinson Hyperlegible (Google Fonts). Dados salvos com a Web Storage API (`localStorage`). Hospedagem no GitHub Pages.
 
 ## Estrutura
 

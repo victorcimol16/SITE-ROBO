@@ -6,6 +6,9 @@
   <title>Chamar Robô | Robô Ecológico CIMOL</title>
   <meta name="description" content="Protótipo de interface do Robô Ecológico, TCC do Curso Técnico em Informática da ETE Monteiro Lobato (CIMOL): simulação da chamada do robô e registro de problemas e dúvidas.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,15 +34,15 @@
           </svg>
 
           <!-- Ponto do usuário -->
-          <div class="ponto usuario" id="usuario" aria-hidden="true">
-            <span class="rotulo">Você</span>
-          </div>
+          <div class="ponto usuario" id="usuario" aria-hidden="true"></div>
 
           <!-- Ponto do robô -->
-          <div class="ponto robo" id="robo" aria-hidden="true">
-            <span class="rotulo">Robô</span>
-          </div>
+          <div class="ponto robo" id="robo" aria-hidden="true"></div>
         </div>
+        <ul class="legenda-marcadores" aria-label="Legenda do mapa">
+          <li><span class="amostra amostra-usuario" aria-hidden="true"></span>Você</li>
+          <li><span class="amostra amostra-robo" aria-hidden="true"></span>Robô</li>
+        </ul>
         <p class="legenda-mapa">Simulação: nesta versão o site ainda não se comunica com o robô.</p>
       </section>
 
@@ -58,30 +61,32 @@
     <div class="coluna coluna-direita">
       <section class="sobre" aria-labelledby="tituloSobre">
         <h2 id="tituloSobre">Sobre o projeto</h2>
-        <p class="sobre-texto">
-          A gestão inadequada de resíduos recicláveis é um problema ambiental
-          persistente, que se reproduz no ambiente escolar e compromete a
-          qualidade dos espaços de convivência. Este trabalho desenvolve um
-          protótipo de robô móvel autônomo capaz de identificar e recolher
-          resíduos recicláveis no CIMOL e conduzi-los à base de descarte.
+        <p class="sobre-lead">
+          Robô autônomo que identifica, recolhe e leva até a base os resíduos
+          recicláveis descartados de forma incorreta no CIMOL.
         </p>
+
+        <h3>O problema</h3>
         <p class="sobre-texto">
-          Um questionário com 58 estudantes e egressos apontou embalagens de
-          lanche, papéis, garrafas PET e latas como os itens mais descartados
-          de forma incorreta, e a falta de conscientização ambiental como
-          principal causa. Entre os participantes, 96% reconheceram o potencial
-          da tecnologia e 95% avaliaram positivamente a proposta. A direção da
-          escola autorizou testes piloto controlados.
+          O descarte incorreto de recicláveis se repete no ambiente escolar e
+          piora a qualidade dos espaços de convivência.
         </p>
-        <p class="sobre-texto">
-          O chassi de esteiras com quatro <i lang="en">flippers</i> (braços
-          articulados para vencer degraus) já foi montado. Em bancada, a visão
-          computacional com modelo YOLO, o sensor ultrassônico e a garra foram
-          integrados: a sequência de coleta funcionou em 7 de 8 testes, mas a
-          garra segurou o objeto em apenas 2, por isso será reformulada. O
-          processamento no Raspberry Pi 4 e a navegação por SLAM (mapeamento e
-          localização simultâneos) ainda estão em desenvolvimento.
-        </p>
+
+        <h3>O que a pesquisa mostrou</h3>
+        <ul class="sobre-lista">
+          <li><strong>58</strong> estudantes e egressos responderam ao questionário.</li>
+          <li>Itens mais descartados de forma incorreta: embalagens de lanche, papéis, garrafas PET e latas.</li>
+          <li>Principal causa apontada: falta de conscientização ambiental.</li>
+          <li><strong>96%</strong> veem a tecnologia como aliada e <strong>95%</strong> aprovam o robô.</li>
+          <li>A direção da escola autorizou testes piloto controlados.</li>
+        </ul>
+
+        <h3>Onde o projeto está</h3>
+        <ul class="sobre-lista">
+          <li><strong>Pronto:</strong> chassi de esteiras com quatro <i lang="en">flippers</i> (braços articulados para vencer degraus).</li>
+          <li><strong>Testado em bancada:</strong> garra com visão computacional (modelo YOLO) e sensor ultrassônico. A sequência de coleta funcionou em 7 de 8 testes, mas a garra segurou o objeto em só 2, por isso será reformulada.</li>
+          <li><strong>Em desenvolvimento:</strong> processamento no Raspberry Pi 4 e navegação por SLAM (mapeamento e localização simultâneos).</li>
+        </ul>
       </section>
 
       <section class="formulario" aria-labelledby="tituloForm">
