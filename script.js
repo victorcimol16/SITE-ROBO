@@ -1,24 +1,30 @@
+/* =====================================================================
+   CHAMADA DO ROBÔ (simulação visual)
+   ===================================================================== */
+
 const botao = document.getElementById("botaoChamar");
 const status = document.getElementById("status");
 const robo = document.getElementById("robo");
 
 // Pontos do trajeto (em %), seguindo a mesma trilha desenhada no mapa.
-// Comeca no canto de baixo e termina ao lado do usuario.
+// Começa dentro do prédio do CIMOL e termina ao lado do usuário.
 const trajeto = [
-  { left: "63%", top: "45%" }, // inicio (dentro do predio do CIMOL)
+  { left: "63%", top: "45%" }, // início
   { left: "63%", top: "50%" }, // desce um pouco
-  { left: "41%", top: "50%" }  // anda para a esquerda ate o usuario
+  { left: "41%", top: "50%" }  // anda para a esquerda até o usuário
 ];
 
 const posicaoInicial = trajeto[0];
+const TEMPO_PASSO = 1200; // mesmo tempo da transição no CSS
+const TEMPO_RETORNO = 3000;
 
 botao.addEventListener("click", function () {
   botao.disabled = true;
-  status.textContent = "Chamando o robo...";
+  status.textContent = "Chamando o robô...";
   status.className = "status chamando";
   robo.classList.add("pulsando");
+  robo.classList.remove("chegou");
 
-  // Anda ponto a ponto: cada passo espera a transicao (1.2s) terminar.
   let passo = 1;
 
   function andar() {
@@ -26,7 +32,7 @@ botao.addEventListener("click", function () {
       robo.style.left = trajeto[passo].left;
       robo.style.top = trajeto[passo].top;
       passo++;
-      setTimeout(andar, 1200); // mesmo tempo da transicao no CSS
+      setTimeout(andar, TEMPO_PASSO);
     } else {
       chegou();
     }
@@ -36,28 +42,33 @@ botao.addEventListener("click", function () {
 });
 
 function chegou() {
-  status.textContent = "O robo chegou!";
+  status.textContent = "O robô chegou!";
   status.className = "status chegou";
   robo.classList.remove("pulsando");
+  robo.classList.add("chegou"); // rótulo sobe para não cobrir o "Você"
 
-  // Depois de 3s, o robo volta para o inicio e libera o botao.
+  // Depois de alguns segundos, o robô volta para o início e libera o botão.
   setTimeout(function () {
+    robo.classList.remove("chegou");
     robo.style.left = posicaoInicial.left;
     robo.style.top = posicaoInicial.top;
-    status.textContent = "Robo disponivel";
+    status.textContent = "Robô disponível";
     status.className = "status";
     botao.disabled = false;
-  }, 3000);
+  }, TEMPO_RETORNO);
 }
 
 /* =====================================================================
-   FORMULARIO DE PROBLEMAS E DUVIDAS + localStorage (Criterio 3)
+   RELATOS: cadastrar, editar e remover sem recarregar a página,
+   com persistência no localStorage
    ===================================================================== */
 
 const form = document.getElementById("formRelato");
 const campoNome = document.getElementById("nome");
 const campoTipo = document.getElementById("tipo");
 const campoMensagem = document.getElementById("mensagem");
+const botaoEnviar = document.getElementById("botaoEnviar");
+const botaoCancelar = document.getElementById("botaoCancelar");
 const aviso = document.getElementById("avisoForm");
 const listaRelatos = document.getElementById("listaRelatos");
 const botaoLimpar = document.getElementById("limparRelatos");
@@ -65,30 +76,59 @@ const botaoLimpar = document.getElementById("limparRelatos");
 const CHAVE_STORAGE = "chamarRobo.relatos";
 const CHAVE_RASCUNHO = "chamarRobo.rascunho";
 
-// Le os relatos salvos no localStorage. Retorna sempre um array,
-// mesmo que o dado esteja ausente ou corrompido (evita erro no Console).
+// Id do relato em edição (null quando o formulário está cadastrando).
+let idEmEdicao = null;
+
+// Gera um identificador único simples para cada relato.
+function novoId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// Versões antigas salvavam "Duvida" sem acento; normaliza na leitura.
+function normalizarTipo(tipo) {
+  return tipo === "Problema" ? "Problema" : "Dúvida";
+}
+
+// Lê os relatos salvos. Retorna sempre um array válido, mesmo que o dado
+// esteja ausente ou corrompido, para não gerar erro no Console.
 function carregarRelatos() {
   try {
     const bruto = localStorage.getItem(CHAVE_STORAGE);
     const dados = bruto ? JSON.parse(bruto) : [];
-    return Array.isArray(dados) ? dados : [];
+    if (!Array.isArray(dados)) return [];
+    return dados
+      .filter(function (r) {
+        return r && typeof r === "object" && r.nome && r.mensagem;
+      })
+      .map(function (r) {
+        return {
+          id: r.id || novoId(),
+          nome: String(r.nome),
+          tipo: normalizarTipo(r.tipo),
+          mensagem: String(r.mensagem),
+          data: Number(r.data) || Date.now(),
+          editado: r.editado ? Number(r.editado) : null
+        };
+      });
   } catch (erro) {
-    console.warn("Nao foi possivel ler os relatos salvos:", erro);
+    console.warn("Não foi possível ler os relatos salvos:", erro);
     return [];
   }
 }
 
-// Salva o array de relatos no localStorage.
 function salvarRelatos(relatos) {
   try {
     localStorage.setItem(CHAVE_STORAGE, JSON.stringify(relatos));
+    return true;
   } catch (erro) {
-    console.warn("Nao foi possivel salvar os relatos:", erro);
+    console.warn("Não foi possível salvar os relatos:", erro);
+    return false;
   }
 }
 
-// Salva o que esta digitado no formulario (rascunho), para nao sumir no F5.
+// Rascunho: o que está digitado não se perde ao apertar F5.
 function salvarRascunho() {
+  if (idEmEdicao) return; // durante a edição, o dado já está salvo no relato
   try {
     const rascunho = {
       nome: campoNome.value,
@@ -97,11 +137,18 @@ function salvarRascunho() {
     };
     localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(rascunho));
   } catch (erro) {
-    console.warn("Nao foi possivel salvar o rascunho:", erro);
+    console.warn("Não foi possível salvar o rascunho:", erro);
   }
 }
 
-// Restaura o rascunho salvo nos campos do formulario (apos F5).
+function limparRascunho() {
+  try {
+    localStorage.removeItem(CHAVE_RASCUNHO);
+  } catch (erro) {
+    console.warn("Não foi possível limpar o rascunho:", erro);
+  }
+}
+
 function restaurarRascunho() {
   try {
     const bruto = localStorage.getItem(CHAVE_RASCUNHO);
@@ -109,23 +156,39 @@ function restaurarRascunho() {
     const rascunho = JSON.parse(bruto);
     if (!rascunho || typeof rascunho !== "object") return;
     campoNome.value = rascunho.nome || "";
-    campoTipo.value = rascunho.tipo || "Problema";
+    campoTipo.value = normalizarTipo(rascunho.tipo);
     campoMensagem.value = rascunho.mensagem || "";
   } catch (erro) {
-    console.warn("Nao foi possivel restaurar o rascunho:", erro);
+    console.warn("Não foi possível restaurar o rascunho:", erro);
   }
 }
 
-// Monta um texto de data legivel a partir de um timestamp.
 function formatarData(timestamp) {
-  const data = new Date(timestamp);
-  return data.toLocaleString("pt-BR");
+  return new Date(timestamp).toLocaleString("pt-BR");
 }
 
-// Desenha a lista de relatos na tela a partir do localStorage.
+function mostrarAviso(texto, tipo) {
+  aviso.textContent = texto;
+  aviso.className = "aviso-form" + (tipo ? " " + tipo : "");
+}
+
+// Cria um botão de ação de um relato (editar ou remover).
+function criarBotao(texto, classe, rotulo, aoClicar) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "botao-acao " + classe;
+  b.textContent = texto;
+  b.setAttribute("aria-label", rotulo);
+  b.addEventListener("click", aoClicar);
+  return b;
+}
+
+// Desenha a lista a partir do localStorage. Usa textContent em vez de
+// innerHTML para que nada digitado pelo usuário seja interpretado como HTML.
 function renderizarRelatos() {
   const relatos = carregarRelatos();
   listaRelatos.innerHTML = "";
+  botaoLimpar.hidden = relatos.length === 0;
 
   if (relatos.length === 0) {
     const vazio = document.createElement("li");
@@ -135,7 +198,7 @@ function renderizarRelatos() {
     return;
   }
 
-  // Mostra os mais recentes primeiro.
+  // Mais recentes primeiro.
   relatos
     .slice()
     .reverse()
@@ -144,6 +207,7 @@ function renderizarRelatos() {
       const classeTipo =
         relato.tipo === "Problema" ? "tipo-problema" : "tipo-duvida";
       item.className = "relato-item " + classeTipo;
+      if (relato.id === idEmEdicao) item.classList.add("em-edicao");
 
       const cabecalho = document.createElement("div");
       cabecalho.className = "relato-cabecalho";
@@ -165,58 +229,152 @@ function renderizarRelatos() {
 
       const dataEl = document.createElement("span");
       dataEl.className = "relato-data";
-      dataEl.textContent = formatarData(relato.data);
+      dataEl.textContent =
+        formatarData(relato.data) +
+        (relato.editado ? " (editado em " + formatarData(relato.editado) + ")" : "");
+
+      const acoes = document.createElement("div");
+      acoes.className = "relato-acoes";
+      acoes.appendChild(
+        criarBotao("Editar", "botao-editar", "Editar relato de " + relato.nome, function () {
+          iniciarEdicao(relato.id);
+        })
+      );
+      acoes.appendChild(
+        criarBotao("Remover", "botao-remover", "Remover relato de " + relato.nome, function () {
+          removerRelato(relato.id);
+        })
+      );
 
       item.appendChild(cabecalho);
       item.appendChild(msg);
       item.appendChild(dataEl);
+      item.appendChild(acoes);
       listaRelatos.appendChild(item);
     });
 }
 
-// Envio do formulario.
+function iniciarEdicao(id) {
+  const relato = carregarRelatos().find(function (r) {
+    return r.id === id;
+  });
+  if (!relato) return;
+  idEmEdicao = id;
+  campoNome.value = relato.nome;
+  campoTipo.value = relato.tipo;
+  campoMensagem.value = relato.mensagem;
+  botaoEnviar.textContent = "Salvar alterações";
+  botaoCancelar.hidden = false;
+  mostrarAviso("Editando o relato de " + relato.nome + ".", "info");
+  renderizarRelatos();
+  campoNome.focus();
+}
+
+function encerrarEdicao() {
+  idEmEdicao = null;
+  form.reset();
+  botaoEnviar.textContent = "Enviar";
+  botaoCancelar.hidden = true;
+}
+
+function removerRelato(id) {
+  const relatos = carregarRelatos();
+  const restantes = relatos.filter(function (r) {
+    return r.id !== id;
+  });
+  if (restantes.length === relatos.length) return;
+  if (!salvarRelatos(restantes)) {
+    mostrarAviso("Não foi possível remover. Tente novamente.", "erro");
+    return;
+  }
+  if (id === idEmEdicao) encerrarEdicao();
+  mostrarAviso("Relato removido.", "ok");
+  renderizarRelatos();
+  campoNome.focus();
+}
+
+// Envio do formulário: cadastra ou salva a edição, sem recarregar a página.
 form.addEventListener("submit", function (evento) {
   evento.preventDefault();
 
   const nome = campoNome.value.trim();
-  const tipo = campoTipo.value;
+  const tipo = normalizarTipo(campoTipo.value);
   const mensagem = campoMensagem.value.trim();
 
+  campoNome.setAttribute("aria-invalid", nome === "" ? "true" : "false");
+  campoMensagem.setAttribute("aria-invalid", mensagem === "" ? "true" : "false");
+
   if (nome === "" || mensagem === "") {
-    aviso.textContent = "Preencha o nome e a mensagem.";
-    aviso.className = "aviso-form erro";
+    mostrarAviso("Preencha o nome e a mensagem.", "erro");
+    (nome === "" ? campoNome : campoMensagem).focus();
     return;
   }
 
   const relatos = carregarRelatos();
-  relatos.push({
-    nome: nome,
-    tipo: tipo,
-    mensagem: mensagem,
-    data: Date.now()
-  });
-  salvarRelatos(relatos);
+  let textoSucesso;
 
-  form.reset();
-  localStorage.removeItem(CHAVE_RASCUNHO); // limpa o rascunho apos enviar
-  aviso.textContent = "Relato enviado com sucesso!";
-  aviso.className = "aviso-form ok";
+  if (idEmEdicao) {
+    const relato = relatos.find(function (r) {
+      return r.id === idEmEdicao;
+    });
+    if (!relato) {
+      encerrarEdicao();
+      mostrarAviso("Esse relato não existe mais.", "erro");
+      renderizarRelatos();
+      return;
+    }
+    relato.nome = nome;
+    relato.tipo = tipo;
+    relato.mensagem = mensagem;
+    relato.editado = Date.now();
+    textoSucesso = "Relato atualizado!";
+  } else {
+    relatos.push({
+      id: novoId(),
+      nome: nome,
+      tipo: tipo,
+      mensagem: mensagem,
+      data: Date.now(),
+      editado: null
+    });
+    textoSucesso = "Relato enviado e salvo neste navegador.";
+  }
+
+  if (!salvarRelatos(relatos)) {
+    mostrarAviso("Não foi possível salvar. Verifique o armazenamento do navegador.", "erro");
+    return;
+  }
+
+  encerrarEdicao();
+  limparRascunho();
+  mostrarAviso(textoSucesso, "ok");
   renderizarRelatos();
 });
 
-// Botao para limpar todos os relatos.
+botaoCancelar.addEventListener("click", function () {
+  encerrarEdicao();
+  restaurarRascunho();
+  mostrarAviso("Edição cancelada.", "");
+  renderizarRelatos();
+});
+
 botaoLimpar.addEventListener("click", function () {
+  const total = carregarRelatos().length;
+  if (total === 0) return;
+  const ok = window.confirm(
+    "Apagar todos os " + total + " relatos salvos neste navegador? Essa ação não pode ser desfeita."
+  );
+  if (!ok) return;
   salvarRelatos([]);
-  aviso.textContent = "";
-  aviso.className = "aviso-form";
+  if (idEmEdicao) encerrarEdicao();
+  mostrarAviso("Todos os relatos foram apagados.", "ok");
   renderizarRelatos();
 });
 
-// Salva o rascunho sempre que o usuario digita/muda algum campo.
 campoNome.addEventListener("input", salvarRascunho);
 campoTipo.addEventListener("change", salvarRascunho);
 campoMensagem.addEventListener("input", salvarRascunho);
 
-// Ao carregar a pagina: restaura o rascunho e mostra os relatos salvos (apos F5).
+// Ao carregar a página (inclusive após F5): restaura rascunho e relatos.
 restaurarRascunho();
 renderizarRelatos();
