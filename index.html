@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chamar Robô | Robô Ecológico CIMOL</title>
-  <meta name="description" content="Protótipo de interface do Robô Ecológico, TCC do Curso Técnico em Informática da ETE Monteiro Lobato (CIMOL): simulação da chamada do robô e registro de problemas e dúvidas.">
+  <title>Monitor do Robô | Robô Ecológico CIMOL</title>
+  <meta name="description" content="Protótipo de interface do Robô Ecológico, TCC do Curso Técnico em Informática da ETE Monteiro Lobato (CIMOL): mapa 3D com a posição do robô, envio às centrais, dados do robô e registro de problemas e dúvidas.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,54 +12,136 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
-  <main class="container" id="conteudo">
-    <!-- ===== COLUNA ESQUERDA: MAPA E CHAMADA ===== -->
-    <div class="coluna coluna-esquerda">
-      <header class="cabecalho">
-        <h1>Chamar Robô</h1>
-        <p class="escola">Escola Técnica Estadual Monteiro Lobato (CIMOL)</p>
-      </header>
-
-      <section class="mapa-area" aria-labelledby="tituloMapa">
-        <h2 id="tituloMapa" class="sr-only">Mapa da chamada do robô</h2>
-        <div class="mapa" id="mapa" role="img"
-             aria-label="Imagem de satélite do entorno da escola, em Taquara. Um marcador verde representa o robô, dentro do prédio do CIMOL, e um marcador escuro representa você. Uma linha tracejada mostra o trajeto do robô até você.">
-          <!-- Trajeto que o robô vai percorrer -->
-          <svg class="trilha" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path id="caminho" d="M 189 135 L 189 150 L 123 150"
-                  fill="none" stroke-width="4"
-                  stroke-dasharray="6 6" stroke-linecap="round"/>
-          </svg>
-
-          <!-- Ponto do usuário -->
-          <div class="ponto usuario" id="usuario" aria-hidden="true"></div>
-
-          <!-- Ponto do robô -->
-          <div class="ponto robo" id="robo" aria-hidden="true"></div>
+  <main class="pagina" id="conteudo">
+    <!-- ===== CABECALHO ===== -->
+    <header class="topo">
+      <div class="marca">
+        <div>
+          <h1>Monitor do Robô</h1>
+          <p class="escola">ETEC Estadual Monteiro Lobato &middot; CIMOL</p>
         </div>
-        <ul class="legenda-marcadores" aria-label="Legenda do mapa">
-          <li><span class="amostra amostra-usuario" aria-hidden="true"></span>Você</li>
-          <li><span class="amostra amostra-robo" aria-hidden="true"></span>Robô</li>
-        </ul>
-        <p class="legenda-mapa">Simulação: nesta versão o site ainda não se comunica com o robô.</p>
-      </section>
+      </div>
+    </header>
 
-      <section class="painel" aria-label="Chamada do robô">
-        <button type="button" id="botaoChamar" class="botao-chamar">Chamar robô</button>
-        <p id="status" class="status" role="status" aria-live="polite">Robô disponível</p>
-      </section>
+    <!-- ===== MAPA 3D + PAINEL ===== -->
+    <section class="grade-principal">
+      <div class="cartao cartao-mapa">
+        <div class="mapa3d-moldura">
+          <div id="mapa3d" class="mapa3d" role="img" aria-label="Mapa 3D do entorno da escola com os prédios A, B, C, D e E. Um pino vermelho mostra onde o robô está e marcadores amarelos mostram as centrais C e A. A posição do robô também aparece em texto no quadro Posição do robô."></div>
 
-      <footer class="rodape">
-        <p>Protótipo do TCC "Robô Ecológico: Coletando Resíduos Recicláveis no CIMOL"</p>
-        <p><a href="https://github.com/victorcimol16/SITE-ROBO">Código-fonte no GitHub</a></p>
-      </footer>
-    </div><!-- /coluna-esquerda -->
+          <!-- Indicativo de onde o robo esta -->
+          <div class="hud hud-local">
+            <span class="hud-titulo">Posição do robô</span>
+            <strong id="hudLocal">Base · Prédio E</strong>
+          </div>
 
-    <!-- ===== COLUNA DIREITA: SOBRE E FORMULÁRIO ===== -->
-    <div class="coluna coluna-direita">
-      <section class="sobre" aria-labelledby="tituloSobre">
+          <div class="hud hud-legenda">
+            <span><i class="leg leg-robo"></i>Robô</span>
+            <span><i class="leg leg-central"></i>Central</span>
+            <span><i class="leg leg-base"></i>Base</span>
+          </div>
+
+          <div class="ferramentas">
+            <button type="button" class="chip" id="btnSeguir">Seguir robô</button>
+            <button type="button" class="chip" id="btnVisaoGeral">Visão geral</button>
+            <button type="button" class="chip ativo" id="btnRaioX">Raio-X</button>
+          </div>
+          <p class="dica">Arraste para girar &middot; role para aproximar</p>
+        </div>
+
+        <div class="enviar">
+          <h2>Enviar o robô para uma central</h2>
+          <div class="botoes-central">
+            <button type="button" class="botao-central" id="btnCentralC">
+              <span class="bc-icone">C</span>
+              <span class="bc-texto"><strong>Central C</strong><small>Prédio C &middot; 2º andar</small></span>
+            </button>
+            <button type="button" class="botao-central" id="btnCentralA">
+              <span class="bc-icone">A</span>
+              <span class="bc-texto"><strong>Central A</strong><small>Prédio A &middot; térreo</small></span>
+            </button>
+            <button type="button" class="botao-central botao-base" id="btnBase">
+              <span class="bc-icone">&#8962;</span>
+              <span class="bc-texto"><strong>Voltar à base</strong><small>Prédio E &middot; carregador</small></span>
+            </button>
+          </div>
+          <p id="status" class="status" role="status" aria-live="polite">Robô na base</p>
+        </div>
+      </div>
+
+      <aside class="coluna-dados">
+        <!-- Estado -->
+        <div class="cartao cartao-estado">
+          <span class="rotulo-card">Estado atual</span>
+          <div class="estado-linha">
+            <strong id="dEstado">Na base</strong>
+            <span class="etiqueta" id="dAlvo">Sem destino</span>
+          </div>
+          <div class="barra-trajeto"><div id="barraTrajeto"></div></div>
+          <span class="mini" id="dProgresso">Aguardando comando</span>
+        </div>
+
+        <!-- Bateria -->
+        <div class="cartao">
+          <div class="cab-card">
+            <span class="rotulo-card">Bateria</span>
+            <span class="valor-grande" id="dBateria">87%</span>
+          </div>
+          <div class="barra barra-bateria"><div id="barraBateria"></div></div>
+          <span class="mini" id="dBateriaInfo">Carregando na base</span>
+        </div>
+
+        <!-- Compartimento -->
+        <div class="cartao">
+          <div class="cab-card">
+            <span class="rotulo-card">Compartimento de lixo</span>
+            <span class="valor-grande" id="dCompart">0%</span>
+          </div>
+          <div class="barra barra-lixo"><div id="barraCompart"></div></div>
+          <span class="mini" id="dCompartInfo">Vazio</span>
+        </div>
+
+        <!-- Numeros -->
+        <div class="numeros">
+          <div class="cartao numero">
+            <span class="rotulo-card">Lixo coletado</span>
+            <strong id="dKg">0,0 kg</strong>
+            <span class="mini" id="dItens">0 itens</span>
+          </div>
+          <div class="cartao numero">
+            <span class="rotulo-card">Distância</span>
+            <strong id="dDist">0 m</strong>
+            <span class="mini" id="dVel">0,0 m/s</span>
+          </div>
+        </div>
+
+        <!-- Centrais -->
+        <div class="cartao">
+          <span class="rotulo-card">Depositado nas centrais</span>
+          <ul class="lista-centrais">
+            <li>
+              <span class="ponto-c ponto-c1"></span>
+              <span>Central C</span>
+              <strong id="dCentralC">0 itens</strong>
+            </li>
+            <li>
+              <span class="ponto-c ponto-a1"></span>
+              <span>Central A</span>
+              <strong id="dCentralA">0 itens</strong>
+            </li>
+          </ul>
+        </div>
+
+        <p class="nota-sim">Dados simulados para o protótipo.</p>
+      </aside>
+    </section>
+
+    <!-- ===== SOBRE E FORMULARIO ===== -->
+    <section class="grade-baixo">
+      <section class="cartao sobre" aria-labelledby="tituloSobre">
         <h2 id="tituloSobre">Sobre o projeto</h2>
         <p class="sobre-lead">
           Robô autônomo que identifica, recolhe e leva até a base os resíduos
@@ -89,7 +171,7 @@
         </ul>
       </section>
 
-      <section class="formulario" aria-labelledby="tituloForm">
+      <section class="cartao formulario" aria-labelledby="tituloForm">
         <h2 id="tituloForm">Relatar problema ou dúvida</h2>
         <form id="formRelato" novalidate>
           <label for="nome">Nome</label>
@@ -120,9 +202,17 @@
           <button type="button" id="limparRelatos" class="botao-limpar">Limpar tudo</button>
         </div>
       </section>
-    </div><!-- /coluna-direita -->
+    </section>
+
+    <footer class="rodape">
+        <p>Protótipo do TCC "Robô Ecológico: Coletando Resíduos Recicláveis no CIMOL"</p>
+        <p><a href="https://github.com/victorcimol16/SITE-ROBO">Código-fonte no GitHub</a></p>
+      </footer>
   </main>
 
+  <script src="lib/three.min.js"></script>
+  <script src="lib/OrbitControls.js"></script>
+  <script src="robo3d.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
